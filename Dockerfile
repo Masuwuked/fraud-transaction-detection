@@ -2,20 +2,21 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-  python3-dev \
-  apt-utils \
-  build-essential \
-  && rm -rf /var/lib/apt/lists/*
+    python3-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install pip==23.0 setuptools==65.5.0
-
+# Copy requirements first (for caching)
 COPY requirements_api.txt .
-RUN pip install -r requirements_api.txt \
-    && pip install scikit-learn==1.0.2 numpy==1.21.6
 
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements_api.txt
 RUN pip uninstall -y uvloop
 
+# Copy app code
 COPY . .
 
-CMD uvicorn app:app --host 0.0.0.0 --port 8000
+# Run API
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
