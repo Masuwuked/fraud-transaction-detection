@@ -1,102 +1,234 @@
 import streamlit as st
+import requests
 import json
-import requests as re
 
-st.title("Credit Card Fraud Detection Web App")
+# -----------------------------
+# PAGE CONFIG
+# -----------------------------
+st.set_page_config(
+    page_title="Credit Card Fraud Detection",
+    page_icon="💳",
+    layout="wide"
+)
 
-st.image("image.png")
+# -----------------------------
+# CUSTOM STYLING
+# -----------------------------
+st.markdown("""
+    <style>
+    .main-title {
+        font-size: 38px;
+        font-weight: bold;
+        color: #1f4e79;
+        margin-bottom: 10px;
+    }
+    .sub-text {
+        font-size: 18px;
+        color: #444;
+        margin-bottom: 20px;
+    }
+    .result-box {
+        padding: 20px;
+        border-radius: 12px;
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 20px;
+    }
+    .fraud {
+        background-color: #ffe6e6;
+        color: #b30000;
+        border: 2px solid #ff4d4d;
+    }
+    .safe {
+        background-color: #e6ffe6;
+        color: #006600;
+        border: 2px solid #33cc33;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-st.write("""
-## About
-Credit card fraud is a form of identity theft that involves an unauthorized taking of another's credit card information for the purpose of charging purchases to the account or removing funds from it.
+# -----------------------------
+# HEADER
+# -----------------------------
+st.markdown('<div class="main-title">💳 Credit Card Fraud Detection System</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="sub-text">Enter transaction details below to predict whether the transaction is <b>fraudulent</b> or <b>not fraudulent</b>.</div>',
+    unsafe_allow_html=True
+)
 
-**This Streamlit App utilizes a Machine Learning API in order to detect fraudulent credit card  based on the following criteria: hours, type of transaction, amount, balance before and after transaction etc.** 
+# -----------------------------
+# OPTIONAL IMAGE
+# -----------------------------
+try:
+    st.image("image.png", use_container_width=True)
+except:
+    pass
 
-The notebook, model and documentation(Dockerfiles, FastAPI script, Streamlit App script) are available on [GitHub.](https://github.com/Nneji123/Credit-Card-Fraud-Detection)        
+# -----------------------------
+# SIDEBAR INFO
+# -----------------------------
+st.sidebar.title("📌 Instructions")
+st.sidebar.info("""
+Fill in the transaction details carefully.
 
-**Made by Group 3 Zummit Africa AI/ML Team**
-
-**Contributors:** 
-- **Hilary Ifezue(Group Lead)**
-- **Nneji Ifeanyi**
-- **Somtochukwu Ogechi**
-- **ThankGod Omieje**
+This system uses a trained Machine Learning model to classify the transaction as:
+- **Fraudulent**
+- **Not Fraudulent**
 """)
 
+st.sidebar.markdown("---")
+st.sidebar.subheader("Transaction Type Mapping")
+st.sidebar.write("""
+- **0** → Cash In  
+- **1** → Cash Out  
+- **2** → Debit  
+- **3** → Payment  
+- **4** → Transfer  
+""")
 
-st.sidebar.header('Input Features of The Transaction')
+# -----------------------------
+# MAIN INPUT SECTION
+# -----------------------------
+st.subheader("📝 Transaction Details")
 
-sender_name = st.sidebar.text_input("""Input Sender ID""")
-receiver_name = st.sidebar.text_input("""Input Receiver ID""")
-step = st.sidebar.slider("""Number of Hours it took the Transaction to complete: """)
-types = st.sidebar.subheader(f"""
-                 Enter Type of Transfer Made:\n\n\n\n
-                 0 for 'Cash In' Transaction\n 
-                 1 for 'Cash Out' Transaction\n 
-                 2 for 'Debit' Transaction\n
-                 3 for 'Payment' Transaction\n  
-                 4 for 'Transfer' Transaction\n""")
-types = st.sidebar.selectbox("",(0,1,2,3,4))
-x = ''
-if types == 0:
-    x = 'Cash in'
-if types == 1:
-    x = 'Cash Out'
-if types == 2:
-    x = 'Debit'
-if types == 3:
-    x = 'Payment'
-if types == 4:
-    x =  'Transfer'
+col1, col2 = st.columns(2)
+
+with col1:
+    sender_name = st.text_input("Sender ID / Name")
+    receiver_name = st.text_input("Receiver ID / Name")
+    step = st.number_input("Transaction Time Step / Hour", min_value=1, max_value=1000, value=1)
     
-amount = st.sidebar.number_input("Amount in $",min_value=0, max_value=110000)
-oldbalanceorg = st.sidebar.number_input("""Original Balance Before Transaction was made""",min_value=0, max_value=110000)
-newbalanceorg= st.sidebar.number_input("""New Balance After Transaction was made""",min_value=0, max_value=110000)
-oldbalancedest= st.sidebar.number_input("""Old Balance""",min_value=0, max_value=110000)
-newbalancedest= st.sidebar.number_input("""New Balance""",min_value=0, max_value=110000)
-isflaggedfraud = st.sidebar.selectbox("""Specify if this was flagged as Fraud by your System: """,(0,1))
-
-
-if st.button("Detection Result"):
-    values = {
-    "step": step,
-    "types": types,
-    "amount": amount,
-    "oldbalanceorig": oldbalanceorg,
-    "newbalanceorig": newbalanceorg,
-    "oldbalancedest": oldbalancedest,
-    "newbalancedest": newbalancedest,
-    "isflaggedfraud": isflaggedfraud
+    transaction_options = {
+        0: "Cash In",
+        1: "Cash Out",
+        2: "Debit",
+        3: "Payment",
+        4: "Transfer"
     }
+    types = st.selectbox(
+        "Transaction Type",
+        options=list(transaction_options.keys()),
+        format_func=lambda x: f"{x} - {transaction_options[x]}"
+    )
 
+with col2:
+    amount = st.number_input("Transaction Amount ($)", min_value=0.0, value=1000.0, step=100.0)
+    oldbalanceorig = st.number_input("Sender Balance Before Transaction ($)", min_value=0.0, value=5000.0, step=100.0)
+    newbalanceorig = st.number_input("Sender Balance After Transaction ($)", min_value=0.0, value=4000.0, step=100.0)
+    oldbalancedest = st.number_input("Recipient Balance Before Transaction ($)", min_value=0.0, value=2000.0, step=100.0)
+    newbalancedest = st.number_input("Recipient Balance After Transaction ($)", min_value=0.0, value=3000.0, step=100.0)
 
-    st.write(f"""### These are the transaction details:\n
-    Sender ID: {sender_name}
-    Receiver ID: {receiver_name}
-    1. Number of Hours it took to complete: {step}\n
-    2. Type of Transaction: {x}\n
-    3. Amount Sent: {amount}\n
-    4. Sender Previous Balance Before Transaction: {oldbalanceorg}\n
-    5. Sender New Balance After Transaction: {newbalanceorg}\n
-    6. Recepient Balance Before Transaction: {oldbalancedest}\n
-    7. Recepient Balance After Transaction: {newbalancedest}\n
-    8. System Flag Fraud Status: {isflaggedfraud}
-                """)
+# -----------------------------
+# FRAUD FLAG LOGIC
+# -----------------------------
+# You can keep this simple logic or later make it smarter
+if amount >= 200000:
+    isflaggedfraud = 1
+else:
+    isflaggedfraud = 0
 
-    res = re.post(f"http://backend.docker:8000/predict/",json=values)
-    json_str = json.dumps(res.json())
-    resp = json.loads(json_str)
-    
-    if sender_name=='' or receiver_name == '':
-        st.write("Error! Please input Transaction ID or Names of Sender and Receiver!")
+st.markdown("---")
+
+# -----------------------------
+# SMART RISK HINTS
+# -----------------------------
+st.subheader("⚠️ Risk Hints")
+
+risk_points = []
+
+if amount > 100000:
+    risk_points.append("High transaction amount detected.")
+if types in [1, 4]:
+    risk_points.append("Cash Out / Transfer transactions are often more fraud-prone.")
+if oldbalanceorig == newbalanceorig and amount > 0:
+    risk_points.append("Sender balance did not change despite transaction amount.")
+if newbalancedest == oldbalancedest and amount > 0:
+    risk_points.append("Recipient balance did not change despite transaction amount.")
+if isflaggedfraud == 1:
+    risk_points.append("System auto-flagged this transaction due to large amount.")
+
+if risk_points:
+    for point in risk_points:
+        st.warning(point)
+else:
+    st.success("No immediate suspicious transaction pattern detected from basic rules.")
+
+# -----------------------------
+# PREDICTION BUTTON
+# -----------------------------
+st.markdown("---")
+predict_button = st.button("🔍 Predict Fraud Status", use_container_width=True)
+
+# -----------------------------
+# PREDICTION LOGIC
+# -----------------------------
+if predict_button:
+    if sender_name.strip() == "" or receiver_name.strip() == "":
+        st.error("Please enter both Sender and Receiver ID / Name.")
     else:
-        st.write(f"""### The '{x}' transaction that took place between {sender_name} and {receiver_name} is {resp[0]}.""")
+        values = {
+            "step": int(step),
+            "types": int(types),
+            "amount": float(amount),
+            "oldbalanceorig": float(oldbalanceorig),
+            "newbalanceorig": float(newbalanceorig),
+            "oldbalancedest": float(oldbalancedest),
+            "newbalancedest": float(newbalancedest),
+            "isflaggedfraud": float(isflaggedfraud)
+        }
 
+        st.subheader("📄 Transaction Summary")
+        st.write(f"""
+        **Sender:** {sender_name}  
+        **Receiver:** {receiver_name}  
+        **Transaction Type:** {transaction_options[types]}  
+        **Transaction Amount:** ${amount:,.2f}  
+        **Transaction Step / Hour:** {step}  
+        **Sender Balance Before:** ${oldbalanceorig:,.2f}  
+        **Sender Balance After:** ${newbalanceorig:,.2f}  
+        **Recipient Balance Before:** ${oldbalancedest:,.2f}  
+        **Recipient Balance After:** ${newbalancedest:,.2f}  
+        **System Fraud Flag:** {isflaggedfraud}
+        """)
 
+        try:
+            # Docker internal backend URL
+            response = requests.post(
+                "http://backend.docker:8000/predict",
+                json=values,
+                timeout=10
+            )
 
+            if response.status_code == 200:
+                result = response.json()
+                prediction = result.get("prediction", "Unknown")
 
+                st.subheader("🧠 Prediction Result")
 
+                if prediction.lower() == "fraudulent":
+                    st.markdown(
+                        f'<div class="result-box fraud">🚨 FRAUD ALERT: This transaction is predicted to be <b>FRAUDULENT</b>.</div>',
+                        unsafe_allow_html=True
+                    )
+                elif prediction.lower() == "not fraudulent":
+                    st.markdown(
+                        f'<div class="result-box safe">✅ SAFE: This transaction is predicted to be <b>NOT FRAUDULENT</b>.</div>',
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.warning(f"Unexpected response from model: {prediction}")
 
+            else:
+                st.error(f"Backend error: {response.status_code}")
+                try:
+                    st.json(response.json())
+                except:
+                    st.write(response.text)
 
-
-
+        except requests.exceptions.ConnectionError:
+            st.error("Could not connect to the backend API. Make sure the FastAPI backend is running.")
+        except requests.exceptions.Timeout:
+            st.error("The backend took too long to respond.")
+        except Exception as e:
+            st.error(f"Unexpected error occurred: {str(e)}")
