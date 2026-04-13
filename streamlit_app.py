@@ -51,7 +51,7 @@ st.markdown("""
 <h1 style='text-align: center;'> Credit Card Fraud Detection</h1>
 """, unsafe_allow_html=True)
 
-st.image("image.jpg", width="stretch")
+st.image("image.png", use_container_width=True)
 
 with st.expander(" About this app"):
     st.write("""
