@@ -2,99 +2,162 @@ import streamlit as st
 import json
 import requests as re
 
-st.title("Credit Card Fraud Detection Web App")
+st.set_page_config(page_title="Fraud Detection", page_icon="💳", layout="centered")
 
-st.image("image.png")
+st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-st.write("""
-## About
-Credit card fraud is a form of identity theft that involves an unauthorized taking of another's credit card information for the purpose of charging purchases to the account or removing funds from it.
+<style>
 
-**This Streamlit App utilizes a Machine Learning model served as an API in order to detect fraudulent credit card transactions based on the following criteria: hours, type of transaction, amount, balance before and after transaction etc.** 
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
 
-The API was built with FastAPI and can be found [here.](https://credit-fraud-ml-api.herokuapp.com/)
+h1, h2, h3 {
+    font-family: 'Montserrat', sans-serif !important;
+    color: #38bdf8 !important;
+}
 
-The notebook, model and documentation(Dockerfiles, FastAPI script, Streamlit App script) are available on [GitHub.](https://github.com/Nneji123/Credit-Card-Fraud-Detection)        
+.stApp {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: #e2e8f0;
+}
 
-**Made by Group 3 Zummit Africa AI/ML Team**
+input, .stNumberInput input {
+    background-color: #1e293b !important;
+    color: white !important;
+    border-radius: 10px !important;
+    border: 1px solid #334155;
+}
 
-**Contributors:** 
-- **Hilary Ifezue(Group Lead)**
-- **Nneji Ifeanyi**
-- **Somtochukwu Ogechi**
-- **ThankGod Omieje**
-- **Kachukwu Okoh**
-""")
+.stButton > button {
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+    color: black;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    border-radius: 12px;
+    padding: 10px;
+}
 
+.stAlert {
+    border-radius: 14px !important;
+    padding: 15px !important;
+}
 
-st.sidebar.header('Input Features of The Transaction')
+</style>
+""", unsafe_allow_html=True)
 
-sender_name = st.sidebar.text_input("""Input Sender ID""")
-receiver_name = st.sidebar.text_input("""Input Receiver ID""")
-step = st.sidebar.slider("""Number of Hours it took the Transaction to complete: """)
-types = st.sidebar.subheader(f"""
-                 Enter Type of Transfer Made:\n\n\n\n
-                 0 for 'Cash In' Transaction\n 
-                 1 for 'Cash Out' Transaction\n 
-                 2 for 'Debit' Transaction\n
-                 3 for 'Payment' Transaction\n  
-                 4 for 'Transfer' Transaction\n""")
-types = st.sidebar.selectbox("",(0,1,2,3,4))
-x = ''
-if types == 0:
-    x = 'Cash in'
-if types == 1:
-    x = 'Cash Out'
-if types == 2:
-    x = 'Debit'
-if types == 3:
-    x = 'Payment'
-if types == 4:
-    x =  'Transfer'
-    
-amount = st.sidebar.number_input("Amount in $",min_value=0, max_value=110000)
-oldbalanceorg = st.sidebar.number_input("""Sender Balance Before Transaction was made""",min_value=0, max_value=110000)
-newbalanceorg= st.sidebar.number_input("""Sender Balance After Transaction was made""",min_value=0, max_value=110000)
-oldbalancedest= st.sidebar.number_input("""Recipient Balance Before Transaction was made""",min_value=0, max_value=110000)
-newbalancedest= st.sidebar.number_input("""Recipient Balance After Transaction was made""",min_value=0, max_value=110000)
-isflaggedfraud = 0
-if amount >= 200000:
-  isflaggedfraud = 1
-else:
-  isflaggedfraud = 0
+st.markdown("""
+<h1 style='text-align: center;'> Credit Card Fraud Detection</h1>
+""", unsafe_allow_html=True)
 
+st.image("image.jpg", width="stretch")
 
-if st.button("Detection Result"):
-    values = {
-    "step": step,
-    "types": types,
-    "amount": amount,
-    "oldbalanceorig": oldbalanceorg,
-    "newbalanceorig": newbalanceorg,
-    "oldbalancedest": oldbalancedest,
-    "newbalancedest": newbalancedest,
-    "isflaggedfraud": isflaggedfraud
-    }
+with st.expander(" About this app"):
+    st.write("""
+    This app uses a Machine Learning model served via FastAPI to detect fraudulent transactions.
 
+    It analyzes:
+    - Transaction time
+    - Type
+    - Amount
+    - Account balances
+    """)
 
-    st.write(f"""### These are the transaction details:\n
-    Sender ID: {sender_name}
-    Receiver ID: {receiver_name}
-    1. Number of Hours it took to complete: {step}\n
-    2. Type of Transaction: {x}\n
-    3. Amount Sent: {amount}$\n
-    4. Sender Balance Before Transaction: {oldbalanceorg}$\n
-    5. Sender Balance After Transaction: {newbalanceorg}$\n
-    6. Recepient Balance Before Transaction: {oldbalancedest}$\n
-    7. Recepient Balance After Transaction: {newbalancedest}$\n
-    8. System Flag Fraud Status(Transaction amount greater than $200000): {isflaggedfraud}
-                """)
+st.markdown("## Enter Transaction Details")
 
-    res = re.post("http://localhost:8001/predict", json=values)
-    json_str = json.dumps(res.json())
-    resp = json.loads(json_str)
-    
-    if sender_name=='' or receiver_name == '':
-        st.write("Error! Please input Transaction ID or Names of Sender and Receiver!")
+col1, col2 = st.columns(2)
+
+with col1:
+    sender_name = st.text_input("Sender ID")
+    step = st.slider("Transaction Time (hours)", 0, 100)
+
+    types = st.selectbox(
+        "Transaction Type",
+        (0, 1, 2, 3, 4),
+        format_func=lambda x: ["Cash In", "Cash Out", "Debit", "Payment", "Transfer"][x]
+    )
+
+    amount = st.number_input("Amount ($)", min_value=0, max_value=110000)
+
+with col2:
+    receiver_name = st.text_input("Receiver ID")
+
+    oldbalanceorg = st.number_input("Sender Balance Before", min_value=0, max_value=110000)
+    newbalanceorg = st.number_input("Sender Balance After", min_value=0, max_value=110000)
+
+    oldbalancedest = st.number_input("Receiver Balance Before", min_value=0, max_value=110000)
+    newbalancedest = st.number_input("Receiver Balance After", min_value=0, max_value=110000)
+
+type_map = {
+    0: "Cash In",
+    1: "Cash Out",
+    2: "Debit",
+    3: "Payment",
+    4: "Transfer"
+}
+x = type_map[types]
+
+isflaggedfraud = 1 if amount >= 200000 else 0
+
+if st.button(" Run Detection"):
+
+    if sender_name == '' or receiver_name == '':
+        st.error(" Please enter Sender and Receiver IDs")
+
     else:
-        st.write(f"""### The '{x}' transaction that took place between {sender_name} and {receiver_name} is {resp[0]}.""")
+        values = {
+            "step": step,
+            "types": types,
+            "amount": amount,
+            "oldbalanceorig": oldbalanceorg,
+            "newbalanceorig": newbalanceorg,
+            "oldbalancedest": oldbalancedest,
+            "newbalancedest": newbalancedest,
+            "isflaggedfraud": isflaggedfraud
+        }
+
+        st.markdown("## Transaction Summary")
+
+        st.info(f"""
+        **Sender:** {sender_name}  
+        **Receiver:** {receiver_name}  
+
+        - Time: {step} hours  
+        - Type: {x}  
+        - Amount: ${amount}  
+
+        **Balances:**
+        - Sender Before: ${oldbalanceorg} → After: ${newbalanceorg}  
+        - Receiver Before: ${oldbalancedest} → After: ${newbalancedest}  
+
+        **System Flag:** {isflaggedfraud}
+        """)
+
+        try:
+            res = re.post("http://localhost:8001/predict", json=values)
+            resp = res.json()
+
+            result = resp[0].lower()
+
+            st.markdown("## Detection Result")
+
+            if result == "fraudulent":
+                st.markdown("""
+                <div style='padding:20px; border-radius:14px; background:#7f1d1d; color:white; text-align:center; font-family:Poppins;'>
+                    <h2> FRAUD DETECTED</h2>
+                </div>
+                """, unsafe_allow_html=True)
+
+            elif result == "not fraudulent":
+                st.markdown("""
+                <div style='padding:20px; border-radius:14px; background:#14532d; color:white; text-align:center; font-family:Poppins;'>
+                    <h2> SAFE TRANSACTION</h2>
+                </div>
+                """, unsafe_allow_html=True)
+
+            else:
+                st.warning(f"Unexpected result: {result}")
+
+        except Exception as e:
+            st.error(f" API Error: {e}")
