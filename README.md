@@ -1,5 +1,10 @@
 # 💳 Credit Card Fraud Detection System
 
+
+
+https://github.com/user-attachments/assets/7f238e5d-9c08-4c0d-9b96-e093e3912ce2
+
+
 A full-stack application that predicts whether a financial transaction is **fraudulent or not** using a Machine Learning model.
 
 ---
