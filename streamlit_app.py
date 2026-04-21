@@ -19,7 +19,7 @@ h1, h2, h3 {
 }
 
 .stApp {
-    background: linear-gradient(135deg, #0f172a, #1e293b);
+    background: linear-gradient(135deg, #14213d, #6930c3);
     color: #e2e8f0;
 }
 
@@ -31,7 +31,7 @@ input, .stNumberInput input {
 }
 
 .stButton > button {
-    background: linear-gradient(90deg, #22c55e, #4ade80);
+    background: linear-gradient(90deg, #c9184a, #ef233c);
     color: black;
     font-weight: 600;
     font-family: 'Poppins', sans-serif;
@@ -44,25 +44,53 @@ input, .stNumberInput input {
     padding: 15px !important;
 }
 
+div[data-testid="stExpander"] {
+    background-color: #1e293b;
+    border-radius: 12px;
+    border: 1px solid #334155;
+}
+
+div[data-testid="stExpander"] summary {
+    font-size: 18px;
+    font-weight: 600;
+    color: #38bdf8;
+}
+
+div[data-testid="stExpander"] summary:hover {
+    color: #fb6f92;
+}
+
+div[data-testid="stExpander"] div[role="region"] {
+    padding: 15px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown("""
-<h1 style='text-align: center;'> Credit Card Fraud Detection</h1>
+<h1 style='text-align: center;'> Fraud Transaction Detection</h1>
 """, unsafe_allow_html=True)
+st.markdown("""<div style=
+            'color: #98c1d9;background-color: #001524; border: 2px solid #0077b6; border-radius: 12px; padding: 15px;' >
+            <h2 style='text-align: left;'>How it works</h2>
+ The Architecture of this project is divided into 3 parts:<br>
+            - <strong>Frontend:</strong> The User inputs Transaction details. Written in Streamlit.<br>
+            - <strong>Backend:</strong> Processes data and handles requests.<br>
+            - <strong>ML model:</strong> Pridicts Fraud based on input features.
+<br>
+            <br>
+            The model is served via FastAPI to detect fraudulent transactions.<br>
+            It analyzes:<br>
+            - Transaction Time<br>
+            - Transaction Type<br>
+            - Amount<br>
+            - Account Balances
+            </div>
+""", unsafe_allow_html=True)
+st.write("")
 
-st.image("image.png", use_container_width=True)
-
-with st.expander(" About this app"):
-    st.write("""
-    This app uses a Machine Learning model served via FastAPI to detect fraudulent transactions.
-
-    It analyzes:
-    - Transaction time
-    - Type
-    - Amount
-    - Account balances
-    """)
+with st.expander("Architecture Diagram"):
+    st.image("Architecture.png", use_container_width=True)   
 
 st.markdown("## Enter Transaction Details")
 
