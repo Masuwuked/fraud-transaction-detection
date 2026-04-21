@@ -2,7 +2,7 @@
 
 
 
-<img width="400" height="225" alt="2026-04-21 21-50-35" src="https://github.com/user-attachments/assets/574953c9-670e-4920-bed1-65da68c8f797" />
+<img width="800" height="450" alt="2026-04-21 21-50-35" src="https://github.com/user-attachments/assets/574953c9-670e-4920-bed1-65da68c8f797" />
 
 
 A full-stack application that predicts whether a financial transaction is **fraudulent or not** using a Machine Learning model.
