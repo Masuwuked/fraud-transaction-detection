@@ -1,4 +1,4 @@
-# 💳 Credit Card Fraud Detection System
+#  Fraud Transaction Detection System
 
 
 
@@ -28,8 +28,8 @@ docker-compose.yaml
 ```
 
 ---
-
-#  Run with Docker Compose (Recommended)
+ 
+##  Run with Docker Compose 
 
 ### 1. Clone the repository
 
@@ -63,9 +63,9 @@ docker-compose up --build
 
 ---
 
-#  Run with Docker (Manual Method)
+##  Run with Docker (Manual Method)
 
-##  Backend
+###  Backend
 
 ```bash
 cd backend
